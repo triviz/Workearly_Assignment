@@ -1,0 +1,37 @@
+import pandas as pd
+
+# Load the dataset
+df = pd.read_csv('finance_liquor_sales.csv')
+
+# Convert zip_code to integer (assuming zip_code is numeric with decimal points)
+df['zip_code'] = df['zip_code'].astype(int)
+
+# Convert the 'date' column to datetime, trying both formats
+try:
+    df['date'] = pd.to_datetime(df['date'], format='%m/%d/%Y')
+except ValueError:
+    try:
+        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+    except ValueError as e:
+        print(f"Error converting dates: {e}")
+
+# Filter the data for the timeframe 2016-2019
+df_filtered = df[(df['date'].dt.year >= 2016) & (df['date'].dt.year <= 2019)]
+
+# Handle missing values
+df_filtered = df_filtered.dropna(subset=['zip_code', 'item_description', 'bottles_sold', 'sale_dollars'])
+
+# Task 1: Discern the most popular item in each zip code
+most_popular_items = df_filtered.groupby(['zip_code', 'item_description']).agg({'bottles_sold': 'sum'}).reset_index()
+most_popular_items = most_popular_items.loc[most_popular_items.groupby('zip_code')['bottles_sold'].idxmax()]
+
+# Task 2: Compute the sales percentage per store (in dollars)
+total_sales = df_filtered['sale_dollars'].sum()
+sales_per_store = df_filtered.groupby('store_name').agg({'sale_dollars': 'sum'}).reset_index()
+sales_per_store['sales_percentage'] = (sales_per_store['sale_dollars'] / total_sales) * 100
+
+# Display the results
+print("Most Popular Items in Each Zip Code (2016-2019):")
+print(most_popular_items[['zip_code', 'item_description', 'bottles_sold']])
+print("\nSales Percentage per Store (2016-2019):")
+print(sales_per_store[['store_name', 'sale_dollars', 'sales_percentage']])
