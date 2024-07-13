@@ -3,7 +3,7 @@ import pandas as pd
 # Load the dataset
 df = pd.read_csv('finance_liquor_sales.csv')
 
-# Convert zip_code to integer (assuming zip_code is numeric with decimal points)
+# Convert zip_code to integer  
 df['zip_code'] = df['zip_code'].astype(int)
 
 # Convert the 'date' column to datetime, trying both formats
